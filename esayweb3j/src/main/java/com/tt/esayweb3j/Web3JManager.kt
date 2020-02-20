@@ -1,13 +1,5 @@
 package com.tt.esayweb3j
 
-import org.web3j.crypto.CipherException
-import org.web3j.crypto.WalletUtils
-import java.io.File
-import java.io.IOException
-import java.security.InvalidAlgorithmParameterException
-import java.security.NoSuchAlgorithmException
-import java.security.NoSuchProviderException
-
 /**
  * 1 生成助记词
 2 生成 1 个地址

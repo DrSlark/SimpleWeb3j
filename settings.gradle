@@ -1,2 +1,2 @@
-include ':app'
+include ':app',  ':esayweb3j'
 rootProject.name='SimpleWeb3j'

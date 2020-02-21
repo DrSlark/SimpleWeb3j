@@ -17,6 +17,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -71,6 +72,31 @@ public class Wallet {
     static final String AES_128_CTR = "pbkdf2";
     static final String SCRYPT = "scrypt";
 
+
+    public static WalletFile createMnemonicEntropyLight(String password, byte[] entropy, ECKeyPair ecKeyPair)
+            throws CipherException {
+        return create(password, entropy, ecKeyPair, N_LIGHT, P_LIGHT);
+    }
+
+    public static WalletFile create(String password, byte[] entropy, ECKeyPair ecKeyPair, int n, int p)
+            throws CipherException {
+
+        byte[] salt = generateRandomBytes(32);
+
+        byte[] derivedKey =
+                generateDerivedScryptKey(password.getBytes(UTF_8), salt, n, R, p, DKLEN);
+
+        byte[] encryptKey = Arrays.copyOfRange(derivedKey, 0, 16);
+        byte[] iv = generateRandomBytes(16);
+
+        byte[] cipherText =
+                performCipherOperation(Cipher.ENCRYPT_MODE, iv, encryptKey, entropy);
+
+        byte[] mac = generateMac(derivedKey, cipherText);
+
+        return createWalletFile(ecKeyPair, cipherText, iv, salt, mac, n, p);
+    }
+
     public static WalletFile create(String password, ECKeyPair ecKeyPair, int n, int p)
             throws CipherException {
 
@@ -102,6 +128,7 @@ public class Wallet {
             throws CipherException {
         return create(password, ecKeyPair, N_LIGHT, P_LIGHT);
     }
+
 
     private static WalletFile createWalletFile(
             ECKeyPair ecKeyPair,
@@ -189,8 +216,7 @@ public class Wallet {
         return Hash.sha3(result);
     }
 
-    public static ECKeyPair decrypt(String password, WalletFile walletFile) throws CipherException {
-
+    public static byte[] decryptToPlainBytes(String password, WalletFile walletFile) throws CipherException {
         validate(walletFile);
 
         WalletFile.Crypto crypto = walletFile.getCrypto();
@@ -230,8 +256,13 @@ public class Wallet {
         }
 
         byte[] encryptKey = Arrays.copyOfRange(derivedKey, 0, 16);
-        byte[] privateKey = performCipherOperation(Cipher.DECRYPT_MODE, iv, encryptKey, cipherText);
-        return ECKeyPair.create(privateKey);
+        byte[] plainsBytes = performCipherOperation(Cipher.DECRYPT_MODE, iv, encryptKey, cipherText);
+        return plainsBytes;
+    }
+
+
+    public static ECKeyPair decrypt(String password, WalletFile walletFile) throws CipherException {
+        return ECKeyPair.create(decryptToPlainBytes(password, walletFile));
     }
 
     static void validate(WalletFile walletFile) throws CipherException {

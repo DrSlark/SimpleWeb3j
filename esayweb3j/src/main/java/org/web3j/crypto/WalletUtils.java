@@ -35,8 +35,8 @@ import static org.web3j.crypto.Keys.PRIVATE_KEY_LENGTH_IN_HEX;
 /** Utility functions for working with Wallet files. */
 public class WalletUtils {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final SecureRandom secureRandom = SecureRandomUtils.secureRandom();
+    protected static final ObjectMapper objectMapper = new ObjectMapper();
+    protected static final SecureRandom secureRandom = SecureRandomUtils.secureRandom();
 
     static {
         objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
@@ -172,7 +172,7 @@ public class WalletUtils {
         return Credentials.create(Wallet.decrypt(password, walletFile));
     }
 
-    private static String getWalletFileName(WalletFile walletFile) {
+    protected static String getWalletFileName(WalletFile walletFile) {
         DateTimeFormatter format =
                 DateTimeFormatter.ofPattern("'UTC--'yyyy-MM-dd'T'HH-mm-ss.nVV'--'");
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);

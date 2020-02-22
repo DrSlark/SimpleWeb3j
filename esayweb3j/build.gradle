@@ -56,19 +56,21 @@ ext {
     mockitoJunitVersion = "3.1.0"
     junitPlatformLauncherVersion = "1.5.2"
     gson = "2.8.6"
+    rxAndroid = "2.0.1"
 }
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "com.github.jnr:jnr-unixsocket:$jnr_unixsocketVersion"
-    implementation "com.squareup.okhttp3:okhttp:$okhttpVersion"
-    implementation "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
-    implementation "io.reactivex.rxjava2:rxjava:$rxjavaVersion"
-    implementation "org.java-websocket:Java-WebSocket:$javaWebSocketVersion"
-    implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
-    implementation "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
-    implementation "com.google.code.gson:gson:$gson"
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "com.github.jnr:jnr-unixsocket:$jnr_unixsocketVersion"
+    api "com.squareup.okhttp3:okhttp:$okhttpVersion"
+    api "com.squareup.okhttp3:logging-interceptor:$okhttpVersion"
+    api "io.reactivex.rxjava2:rxjava:$rxjavaVersion"
+    api "io.reactivex.rxjava2:rxandroid:$rxAndroid"
+    api "org.java-websocket:Java-WebSocket:$javaWebSocketVersion"
+    api "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    api "org.slf4j:slf4j-api:$slf4jVersion"
+    api "org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion"
+    api "com.google.code.gson:gson:$gson"
 //    implementation 'org.org.web3j:contracts:4.2.0-android'
 }
 

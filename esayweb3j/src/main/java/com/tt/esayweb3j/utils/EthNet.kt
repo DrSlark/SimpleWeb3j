@@ -1,6 +1,5 @@
-package com.tt.esayweb3j
+package com.tt.esayweb3j.utils
 
-import com.tt.esayweb3j.utils.EthOkHttpClient
 import io.reactivex.Flowable
 import org.web3j.contracts.eip20.generated.ERC20
 import org.web3j.crypto.Credentials
@@ -69,7 +68,7 @@ object EthNet {
         return ERC20.load(
             params.erc20ContractAddr,
             web3j,
-            RawTransactionManager(web3j, Credentials.create(params.privateKey)),
+            RawTransactionManager(web3j, params.credentials),
             StaticGasProvider(params.gasPrice, params.gasLimit)
         ).transfer(params.toAddr, params.amount).flowable()
     }
@@ -79,7 +78,7 @@ object EthNet {
     ): Flowable<TransactionReceipt> {
         return Transfer.sendFunds(
             web3j,
-            Credentials.create(params.privateKey),
+            params.credentials,
             params.toAddr,
             params.amount.toBigDecimal(),
             Convert.Unit.WEI,
@@ -93,7 +92,7 @@ object EthNet {
         val amount: BigInteger,
         val gasPrice: BigInteger,
         val gasLimit: BigInteger,
-        val privateKey: String,
+        val credentials: Credentials,
         val erc20ContractAddr: String?
     )
 

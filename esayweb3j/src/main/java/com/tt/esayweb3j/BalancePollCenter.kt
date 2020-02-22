@@ -2,6 +2,7 @@ package com.tt.esayweb3j
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.tt.esayweb3j.utils.EthNet
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers

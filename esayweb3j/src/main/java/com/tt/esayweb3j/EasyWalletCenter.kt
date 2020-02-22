@@ -5,6 +5,10 @@ import org.web3j.crypto.EasyBip44WalletUtils
 import java.io.File
 
 object EasyWalletCenter {
+    private data class WalletsMeta(
+        val walletNames: List<String>
+    )
+
     private val unlockedWallet = mutableMapOf<String, EasyWalletProfile>()
     private var walletBaseDirPath: String = ""
 
@@ -19,6 +23,42 @@ object EasyWalletCenter {
         f.mkdirs()
     }
 
+
+    fun listAllWalletName(): List<String> {
+        return kotlin.runCatching {
+            val walletsMetaFile = File(walletBaseDirPath, "meta")
+            val walletsMete =
+                gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
+            walletsMete.walletNames
+        }.getOrDefault(emptyList())
+    }
+
+    fun deleteAccount(name: String) {
+        kotlin.runCatching {
+            val walletsMetaFile = File(walletBaseDirPath, "meta")
+            val walletsMete =
+                gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
+
+            val newWalletsMeta =
+                walletsMete.copy(walletNames = walletsMete.walletNames.filter { it != name })
+            walletsMetaFile.writeText(gson.toJson(newWalletsMeta))
+        }
+
+        kotlin.runCatching {
+            val expectWalletFile = File(walletBaseDirPath, EasyWalletProfile.getFileName(name))
+            val profile =
+                kotlin.runCatching {
+                    gson.fromJson(expectWalletFile.reader(), EasyWalletProfile::class.java)
+                }.getOrElse {
+                    throw Exception("deserialize EasyWalletProfile error", it)
+                }
+
+            val walletFile = File(walletBaseDirPath, profile.walletFileName)
+            walletFile.delete()
+            expectWalletFile.delete()
+        }
+    }
+
     fun generate(name: String, password: String): EasyWalletProfile {
         val expectWalletFile = File(walletBaseDirPath, EasyWalletProfile.getFileName(name))
         if (expectWalletFile.exists()) {
@@ -26,6 +66,17 @@ object EasyWalletCenter {
         }
         val generateBip44Wallet =
             EasyBip44WalletUtils.generateBip44Wallet(password, expectWalletFile)
+
+        kotlin.runCatching {
+            val walletsMetaFile = File(walletBaseDirPath, "meta")
+            val walletsMete =
+                gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
+            walletsMetaFile.writeText(gson.toJson(WalletsMeta(walletNames = mutableListOf(name).apply {
+                addAll(
+                    walletsMete.walletNames
+                )
+            })))
+        }
 
         return EasyWalletProfile(
             name = name,

@@ -1,8 +1,10 @@
 package com.tt.esayweb3j
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.tt.esayweb3j.utils.EthNet
+import com.tt.esayweb3j.utils.gson
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -17,7 +19,6 @@ class BalancePollCenter(
     val onBalanceGetFunc: OnBalanceGetFunc = { _, _ -> },
     val pollIntervalSeconds: Long = 5L
 ) {
-    private val gson = Gson()
 
     private val balanceMap = mutableMapOf<String, EthTokenBalanceInfo>()
     private var pillDispose: Disposable? = null

@@ -1,18 +1,20 @@
 package com.tt.esayweb3j
 
-import com.google.gson.Gson
+import com.tt.esayweb3j.utils.gson
 import org.web3j.crypto.EasyBip44WalletUtils
 import java.io.File
+
 
 object EasyWalletCenter {
     private data class WalletsMeta(
         val walletNames: List<String>
     )
 
-    private val unlockedWallet = mutableMapOf<String, EasyWalletProfile>()
+    // 这里有所有解锁的钱包 具体用哪一个可以在外面找个变量存一下
+    private val unlockedWallets = mutableMapOf<String, EasyWalletProfile>()
     private var walletBaseDirPath: String = ""
 
-    private val gson = Gson()
+    fun getUnlockedWallet(walletName: String) = unlockedWallets[walletName]
 
     fun config(walletBaseDirPath: String) {
         this.walletBaseDirPath = walletBaseDirPath
@@ -23,8 +25,7 @@ object EasyWalletCenter {
         f.mkdirs()
     }
 
-
-    fun listAllWalletName(): List<String> {
+    fun listAllWalletNames(): List<String> {
         return kotlin.runCatching {
             val walletsMetaFile = File(walletBaseDirPath, "meta")
             val walletsMete =
@@ -64,26 +65,26 @@ object EasyWalletCenter {
         if (expectWalletFile.exists()) {
             throw Exception("Already exists this name")
         }
+        expectWalletFile.parentFile?.mkdirs()
         val generateBip44Wallet =
-            EasyBip44WalletUtils.generateBip44Wallet(password, expectWalletFile)
+            EasyBip44WalletUtils.generateBip44Wallet(password, File(walletBaseDirPath))
 
-        kotlin.runCatching {
-            val walletsMetaFile = File(walletBaseDirPath, "meta")
-            val walletsMete =
-                gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
-            walletsMetaFile.writeText(gson.toJson(WalletsMeta(walletNames = mutableListOf(name).apply {
-                addAll(
-                    walletsMete.walletNames
-                )
-            })))
-        }
+        val walletsMetaFile = File(walletBaseDirPath, "meta")
+        val walletsMete = runCatching {
+            gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
+        }.getOrElse { WalletsMeta(emptyList()) }
+        walletsMetaFile.writeText(gson.toJson(WalletsMeta(walletNames = mutableListOf(name).apply {
+            addAll(
+                walletsMete.walletNames
+            )
+        })))
 
         return EasyWalletProfile(
             name = name,
             walletFileName = generateBip44Wallet.filename,
             defaultEthAddress = generateBip44Wallet.ethCredentials.address,
             easyBip44Wallet = generateBip44Wallet
-        )
+        ).also { expectWalletFile.writeText(gson.toJson(it)) }
     }
 
     fun unlock(name: String, password: String) {
@@ -107,11 +108,11 @@ object EasyWalletCenter {
         }
 
         val newProfile = profile.copy(easyBip44Wallet = easyBip44Wallet)
-        unlockedWallet[name] = newProfile
+        unlockedWallets[name] = newProfile
     }
 
     fun lock(name: String) {
-        unlockedWallet.remove(EasyWalletProfile.getFileName(name))
+        unlockedWallets.remove(EasyWalletProfile.getFileName(name))
     }
 
 

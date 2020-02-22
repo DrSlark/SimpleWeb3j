@@ -6,7 +6,6 @@ import android.widget.Toast
 import com.google.gson.Gson
 import com.tt.esayweb3j.EasyWalletCenter
 import io.reactivex.Observable
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
@@ -30,49 +29,79 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         Observable.fromCallable {
-            EasyWalletCenter.listAllWalletName()
+            EasyWalletCenter.listAllWalletNames()
         }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
-            walletNames.text = it.reduce { acc, s ->
+            walletNames.text = it.takeIf { it.isNotEmpty() }?.reduce { acc, s ->
                 "$s\n$acc"
             }
         }.addTo(disposable)
 
 
         create.setOnClickListener {
-            val walletName = walletName.editText?.toString() ?: kotlin.run {
+            val walletNameStr = walletName.editText?.editableText?.toString() ?: kotlin.run {
                 showToast("empty walletName")
                 return@setOnClickListener
             }
-            val password = password.editText?.toString() ?: kotlin.run {
+            val passwordStr = password.editText?.editableText?.toString() ?: kotlin.run {
                 showToast("empty password")
                 return@setOnClickListener
             }
             Observable.fromCallable {
-                EasyWalletCenter.generate(name = walletName, password = password)
+                EasyWalletCenter.generate(name = walletNameStr, password = passwordStr)
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
+                .subscribe({
                     walletDetails.append(gson.toJson(it) + "\n")
-                }
+                }, {
+                    showToast(it.message ?: "")
+                }).addTo(disposable)
+
         }
 
-        login.setOnClickListener {
-            val walletName = walletName.editText?.toString() ?: kotlin.run {
+
+        unlock.setOnClickListener {
+            val walletNameStr = walletName.editText?.editableText?.toString() ?: kotlin.run {
                 showToast("empty walletName")
                 return@setOnClickListener
             }
-            val password = password.editText?.toString() ?: kotlin.run {
+            val passwordStr = password.editText?.editableText?.toString() ?: kotlin.run {
                 showToast("empty password")
                 return@setOnClickListener
             }
 
             Observable.fromCallable {
-                EasyWalletCenter.unlock(name = walletName, password = password)
+                EasyWalletCenter.unlock(name = walletNameStr, password = passwordStr)
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
-                    walletDetails.append(gson.toJson(it) + "\n")
-                }
+                    walletDetails.append(gson.toJson(it) + "\n\n\n")
+                }.addTo(disposable)
+        }
+
+        delete.setOnClickListener {
+            val walletNameStr = walletName.editText?.editableText?.toString() ?: kotlin.run {
+                showToast("empty walletName")
+                return@setOnClickListener
+            }
+
+            Observable.fromCallable {
+                EasyWalletCenter.deleteAccount(name = walletNameStr)
+                EasyWalletCenter.listAllWalletNames()
+            }.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    walletNames.text = it.takeIf { it.isNotEmpty() }?.reduce { acc, s ->
+                        "$s\n$acc"
+                    }
+                }.addTo(disposable)
+        }
+
+        lock.setOnClickListener {
+            val walletNameStr = walletName.editText?.editableText?.toString() ?: kotlin.run {
+                showToast("empty walletName")
+                return@setOnClickListener
+            }
+            EasyWalletCenter.lock(walletNameStr)
         }
 
 

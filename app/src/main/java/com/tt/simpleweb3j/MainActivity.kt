@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
-                    walletDetails.append(gson.toJson(it) + "\n")
+                    walletDetails.append("${it.easyBip44Wallet?.mnemonic}\n\n${gson.toJson(it)}\n\n\n")
                 }, {
                     showToast(it.message ?: "")
                 }).addTo(disposable)

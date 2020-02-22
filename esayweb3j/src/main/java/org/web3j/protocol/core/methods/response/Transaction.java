@@ -251,7 +251,7 @@ public class Transaction {
     // https://github.com/ethereum/go-ethereum/issues/3339
     public void setV(Object v) {
         if (v instanceof String) {
-            this.v = Numeric.toBigInt((String) v).longValueExact();
+            this.v = Numeric.toBigInt((String) v).longValue();
         } else if (v instanceof Integer) {
             this.v = ((Integer) v).longValue();
         } else {

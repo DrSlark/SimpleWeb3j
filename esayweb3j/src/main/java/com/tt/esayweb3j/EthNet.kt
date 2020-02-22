@@ -1,6 +1,6 @@
-package net.vite.wallet.network.eth
+package com.tt.esayweb3j
 
-import com.tt.esayweb3j.EthOkHttpClient
+import com.tt.esayweb3j.utils.EthOkHttpClient
 import org.web3j.abi.FunctionEncoder
 import org.web3j.abi.TypeReference
 import org.web3j.abi.datatypes.Address
@@ -20,63 +20,47 @@ import org.web3j.tx.gas.DefaultGasProvider
 import java.io.IOException
 import java.math.BigInteger
 
+
 object EthNet {
-    @Volatile
     private var currentUrl: String? = null
 
-    private var web3: Web3j? = null
-    private fun getWeb3j() = web3!!
+    private lateinit var web3j: Web3j
 
     fun config(baseUrl: String) {
         currentUrl = baseUrl
-        web3 = Web3j.build(HttpService(currentUrl, EthOkHttpClient.create()))
+        web3j = Web3j.build(HttpService(currentUrl, EthOkHttpClient.create()))
+    }
+
+    fun getEthBalance(ethAddr: String): BigInteger {
+        return web3j.ethGetBalance(ethAddr, DefaultBlockParameterName.PENDING).send().balance
+    }
+
+    fun getErc20TokenDecimals(contractAddr: String): Int {
+        return ERC20.load(
+            contractAddr,
+            web3j,
+            ReadonlyTransactionManager(web3j, contractAddr),
+            DefaultGasProvider()
+        ).decimals().send().toInt()
+    }
+
+    fun getErc20TokenBalance(ethAddr: String, contractAddr: String): BigInteger {
+        return ERC20.load(
+            contractAddr,
+            web3j,
+            ReadonlyTransactionManager(web3j, ethAddr),
+            DefaultGasProvider()
+        ).balanceOf(ethAddr).send()
     }
 
 
-    fun getTokenBalance(accAddr: String, contractAddr: String = ""): BigInteger? {
-        return try {
-            if (contractAddr != "") {
-                ERC20.load(
-                    contractAddr,
-                    getWeb3j(),
-                    ReadonlyTransactionManager(getWeb3j(), accAddr),
-                    DefaultGasProvider()
-                ).balanceOf(accAddr).send()
-            } else {
-                getWeb3j().ethGetBalance(accAddr, DefaultBlockParameterName.LATEST).send().balance
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun getGasPrice(): BigInteger? {
-        return try {
-            getWeb3j().ethGasPrice().send().gasPrice
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    data class EthSendParams(
-        val toAddr: String,
-        val amount: BigInteger,
-        val gasPrice: BigInteger,
-        val gasLimit: BigInteger,
-        val privateKey: String,
-        val erc20ContractAddr: String?
-    )
-
-    data class EthSignResult(
-        val txHash: String,
-        val address: String,
-        val pubKey: String
-    )
-
+    fun getGasPrice() = web3j.ethGasPrice().send().gasPrice
 
     @Throws(IOException::class)
-    fun getNonce(address: String): BigInteger {
-        val ethGetTransactionCount = getWeb3j().ethGetTransactionCount(
+    fun getNonce(
+        address: String
+    ): BigInteger {
+        val ethGetTransactionCount = web3j.ethGetTransactionCount(
             address, DefaultBlockParameterName.PENDING
         ).send()
 
@@ -93,7 +77,7 @@ object EthNet {
         )
 
         val rawTransactionManager =
-            RawTransactionManager(getWeb3j(), Credentials.create(params.privateKey))
+            RawTransactionManager(web3j, Credentials.create(params.privateKey))
         return rawTransactionManager.sendTransaction(
             params.gasPrice,
             params.gasLimit,
@@ -107,7 +91,7 @@ object EthNet {
         params: EthSendParams
     ): EthSendTransaction? {
         val rawTransaction =
-            RawTransactionManager(getWeb3j(), Credentials.create(params.privateKey))
+            RawTransactionManager(web3j, Credentials.create(params.privateKey))
         return rawTransaction.sendTransaction(
             params.gasPrice,
             params.gasLimit,
@@ -116,6 +100,15 @@ object EthNet {
             params.amount
         )
     }
+
+    data class EthSendParams(
+        val toAddr: String,
+        val amount: BigInteger,
+        val gasPrice: BigInteger,
+        val gasLimit: BigInteger,
+        val privateKey: String,
+        val erc20ContractAddr: String?
+    )
 
 
 }

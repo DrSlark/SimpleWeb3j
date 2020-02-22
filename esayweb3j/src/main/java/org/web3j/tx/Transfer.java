@@ -84,6 +84,23 @@ public class Transfer extends ManagedTransaction {
             Credentials credentials,
             String toAddress,
             BigDecimal value,
+            Convert.Unit unit,
+            BigInteger gasPrice,
+            BigInteger gasLimit)
+            throws InterruptedException, IOException, TransactionException {
+
+        TransactionManager transactionManager = new RawTransactionManager(web3j, credentials);
+
+        return new RemoteCall<>(
+                () -> new Transfer(web3j, transactionManager).send(toAddress, value, unit, gasPrice, gasLimit));
+    }
+
+
+    public static RemoteCall<TransactionReceipt> sendFunds(
+            Web3j web3j,
+            Credentials credentials,
+            String toAddress,
+            BigDecimal value,
             Convert.Unit unit)
             throws InterruptedException, IOException, TransactionException {
 

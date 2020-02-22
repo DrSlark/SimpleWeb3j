@@ -1,22 +1,19 @@
 package com.tt.esayweb3j
 
 import com.tt.esayweb3j.utils.EthOkHttpClient
-import org.web3j.abi.FunctionEncoder
-import org.web3j.abi.TypeReference
-import org.web3j.abi.datatypes.Address
-import org.web3j.abi.datatypes.Bool
-import org.web3j.abi.datatypes.Function
-import org.web3j.abi.datatypes.Type
-import org.web3j.abi.datatypes.generated.Uint256
+import io.reactivex.Flowable
 import org.web3j.contracts.eip20.generated.ERC20
 import org.web3j.crypto.Credentials
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.DefaultBlockParameterName
-import org.web3j.protocol.core.methods.response.EthSendTransaction
+import org.web3j.protocol.core.methods.response.TransactionReceipt
 import org.web3j.protocol.http.HttpService
 import org.web3j.tx.RawTransactionManager
 import org.web3j.tx.ReadonlyTransactionManager
+import org.web3j.tx.Transfer
 import org.web3j.tx.gas.DefaultGasProvider
+import org.web3j.tx.gas.StaticGasProvider
+import org.web3j.utils.Convert
 import java.io.IOException
 import java.math.BigInteger
 
@@ -53,7 +50,6 @@ object EthNet {
         ).balanceOf(ethAddr).send()
     }
 
-
     fun getGasPrice() = web3j.ethGasPrice().send().gasPrice
 
     @Throws(IOException::class)
@@ -69,36 +65,27 @@ object EthNet {
 
     fun sendErc20Tx(
         params: EthSendParams
-    ): EthSendTransaction? {
-        val f = Function(
-            "transfer",
-            arrayListOf(Address(params.toAddr), Uint256(params.amount)) as List<Type<Any>>,
-            mutableListOf(TypeReference.create(Bool::class.java)) as List<TypeReference<*>>?
-        )
-
-        val rawTransactionManager =
-            RawTransactionManager(web3j, Credentials.create(params.privateKey))
-        return rawTransactionManager.sendTransaction(
-            params.gasPrice,
-            params.gasLimit,
+    ): Flowable<TransactionReceipt> {
+        return ERC20.load(
             params.erc20ContractAddr,
-            FunctionEncoder.encode(f),
-            BigInteger.ZERO
-        )
+            web3j,
+            RawTransactionManager(web3j, Credentials.create(params.privateKey)),
+            StaticGasProvider(params.gasPrice, params.gasLimit)
+        ).transfer(params.toAddr, params.amount).flowable()
     }
 
     fun sendEth(
         params: EthSendParams
-    ): EthSendTransaction? {
-        val rawTransaction =
-            RawTransactionManager(web3j, Credentials.create(params.privateKey))
-        return rawTransaction.sendTransaction(
-            params.gasPrice,
-            params.gasLimit,
+    ): Flowable<TransactionReceipt> {
+        return Transfer.sendFunds(
+            web3j,
+            Credentials.create(params.privateKey),
             params.toAddr,
-            "",
-            params.amount
-        )
+            params.amount.toBigDecimal(),
+            Convert.Unit.WEI,
+            params.gasPrice,
+            params.gasLimit
+        ).flowable()
     }
 
     data class EthSendParams(

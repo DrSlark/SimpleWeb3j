@@ -1,9 +1,13 @@
 package com.tt.simpleweb3j
 
+import android.content.Context
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import com.google.gson.Gson
+import com.tt.esayweb3j.EasyWalletErrCode
+import com.tt.esayweb3j.EasyWalletException
 import com.tt.esayweb3j.SingleEasyWallet
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -16,18 +20,17 @@ fun Disposable.addTo(c: CompositeDisposable): Boolean {
     return c.add(this)
 }
 
+fun Context.showToast(msg: String) {
+    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+}
+
+
 class MainActivity : AppCompatActivity() {
     val gson = Gson()
-    fun showToast(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-    }
 
     private val disposable = CompositeDisposable()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
+    fun refresh() {
         Observable.fromCallable {
             SingleEasyWallet.listAllWalletNames()
         }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
@@ -35,6 +38,12 @@ class MainActivity : AppCompatActivity() {
                 "$s\n$acc"
             }
         }.addTo(disposable)
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        refresh()
 
 
         create.setOnClickListener {
@@ -47,14 +56,21 @@ class MainActivity : AppCompatActivity() {
                 showToast("empty password")
                 return@setOnClickListener
             }
+
             Observable.fromCallable {
                 SingleEasyWallet.generate(name = walletNameStr, password = passwordStr)
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
+                    refresh()
                     walletDetails.append("${it.easyBip44Wallet?.mnemonic}\n\n${gson.toJson(it)}\n\n\n")
                 }, {
-                    showToast(it.message ?: "")
+                    if (it is EasyWalletException && it.code == EasyWalletErrCode.WALLET_NAME_DUPLICATED) {
+                        showToast("$walletNameStr 已经存在")
+                    } else {
+                        showToast("发生未知错误 ${it.message}")
+                        it.printStackTrace()
+                    }
                 }).addTo(disposable)
 
         }
@@ -74,9 +90,23 @@ class MainActivity : AppCompatActivity() {
                 SingleEasyWallet.unlock(name = walletNameStr, password = passwordStr)
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
+                .subscribe({
                     walletDetails.append(gson.toJson(it) + "\n\n\n")
-                }.addTo(disposable)
+                }, {
+                    if (it is EasyWalletException) {
+                        when (it.code) {
+                            EasyWalletErrCode.WALLET_NOT_EXIST -> showToast("$walletNameStr 不存在")
+                            EasyWalletErrCode.PASSWORD_ERROR -> showToast("密码错误")
+                            else -> {
+                                showToast("发生未知错误 ${it.message}")
+                                it.printStackTrace()
+                            }
+                        }
+                    } else {
+                        showToast("发生未知错误 ${it.message}")
+                        it.printStackTrace()
+                    }
+                }).addTo(disposable)
         }
 
         delete.setOnClickListener {
@@ -87,14 +117,15 @@ class MainActivity : AppCompatActivity() {
 
             Observable.fromCallable {
                 SingleEasyWallet.deleteWallet(name = walletNameStr)
-                SingleEasyWallet.listAllWalletNames()
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe {
-                    walletNames.text = it.takeIf { it.isNotEmpty() }?.reduce { acc, s ->
-                        "$s\n$acc"
-                    }
-                }.addTo(disposable)
+                .subscribe({
+                    showToast("删除成功")
+                    refresh()
+                }, {
+                    showToast("删除失败 ${it.message}")
+                    it.printStackTrace()
+                }).addTo(disposable)
         }
 
         lock.setOnClickListener {
@@ -102,7 +133,17 @@ class MainActivity : AppCompatActivity() {
                 showToast("empty walletName")
                 return@setOnClickListener
             }
+            showToast("已经加锁")
             SingleEasyWallet.lock(walletNameStr)
+        }
+
+        gotoEthTran.setOnClickListener {
+            if(SingleEasyWallet.unlockedWallet == null) {
+                // 未解锁任何钱包
+                showToast("Please unlock a wallet")
+                return@setOnClickListener
+            }
+            startActivity(Intent(this,EthActivity::class.java))
         }
 
     }

@@ -69,11 +69,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/delete" />
 
+    <Button
+        android:id="@+id/gotoEthTran"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:text="GotoEthTran"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/lock" />
+
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lock">
+        app:layout_constraintTop_toBottomOf="@+id/gotoEthTran">
 
         <LinearLayout
             android:layout_width="match_parent"

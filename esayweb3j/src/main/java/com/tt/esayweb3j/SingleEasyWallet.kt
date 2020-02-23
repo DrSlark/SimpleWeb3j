@@ -3,6 +3,7 @@ package com.tt.esayweb3j
 import com.tt.esayweb3j.impl.*
 import io.reactivex.Flowable
 import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import org.web3j.protocol.core.methods.response.TransactionReceipt
 import java.math.BigInteger
@@ -30,6 +31,9 @@ object SingleEasyWallet {
     fun lock(name: String? = null) {
         val lockName = name ?: unlockedWallet?.name ?: return
         EasyWalletCenter.lock(lockName)
+        if (lockName == unlockedWallet?.name) {
+            unlockedWallet = null
+        }
     }
 
     fun generate(name: String, password: String): EasyWalletProfile {
@@ -42,6 +46,9 @@ object SingleEasyWallet {
     fun deleteWallet(name: String? = null) {
         val deleteName = name ?: unlockedWallet?.name ?: return
         EasyWalletCenter.deleteWallet(deleteName)
+        if (deleteName == unlockedWallet?.name) {
+            unlockedWallet = null
+        }
     }
 
     /**
@@ -104,7 +111,7 @@ object SingleEasyWallet {
                 TokenBalanceCache.addBalanceInfo(realEthAddr, tokenBalanceInfo)
                 emitter.onNext(tokenBalanceInfo)
             }
-        }
+        }.subscribeOn(Schedulers.io())
     }
 
     /**
@@ -112,7 +119,6 @@ object SingleEasyWallet {
      * @param toAddr 发给谁
      * @param erc20ContractAddr 哪个币
      * @param amount 多少钱 注意这里都是最小精度比如 1USDT 的话 这里应该传 100_000_00 单位转化用EthTokenBalanceInfo里面的 方法
-     * @param credentials 解锁钱包后能拿到的
      * @param gasPrice 通过 #getGasPrice() 获得一个推荐值 也可以让用户自己填
      * @param gasLimit 暂时写死60000 也可以改
      * @return 这笔交易的状态 根据产品需求去展示吧
@@ -134,7 +140,7 @@ object SingleEasyWallet {
             credentials,
             gasPrice,
             gasLimit
-        )
+        ).subscribeOn(Schedulers.io())
     }
 
     /**
@@ -161,7 +167,7 @@ object SingleEasyWallet {
             credentials,
             gasPrice,
             gasLimit
-        )
+        ).subscribeOn(Schedulers.io())
     }
 
 

@@ -2,6 +2,7 @@ package com.tt.esayweb3j
 
 enum class EasyWalletErrCode {
     WALLET_NOT_EXIST,
+    WALLET_NAME_DUPLICATED,
     PASSWORD_ERROR,
     LOCKED,
     OTHER

@@ -22,6 +22,7 @@ object EthNet {
 
     private lateinit var web3j: Web3j
 
+
     fun init() {
         web3j = Web3j.build(HttpService(EasyWeb3JGlobalConfig.web3JUrl, EthOkHttpClient.create()))
     }

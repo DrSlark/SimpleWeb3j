@@ -20,7 +20,7 @@ class TokenBalancePoll(
     fun start() {
         pillDispose = Observable.fromCallable {
             val tokenBalance = TokenBalanceCache.getBalanceInfo(ethAddr, subscribeToken)?.also {
-                onBalanceGetFunc(it, true)
+                onBalanceGetFunc(it, false)
             }
             kotlin.runCatching {
                 val ethTokenBalanceInfo =
@@ -30,7 +30,7 @@ class TokenBalancePoll(
 
                 onBalanceGetFunc(ethTokenBalanceInfo, true)
 
-            }
+            }.exceptionOrNull()?.printStackTrace()
         }.subscribeOn(Schedulers.io())
             .repeatWhen { it.delay(pollIntervalSeconds, TimeUnit.SECONDS) }
             .retryWhen { it.delay(pollIntervalSeconds, TimeUnit.SECONDS) }

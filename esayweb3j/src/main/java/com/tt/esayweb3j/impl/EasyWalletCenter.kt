@@ -74,7 +74,7 @@ object EasyWalletCenter {
             EasyWalletProfile.getFileName(name)
         )
         if (expectWalletFile.exists()) {
-            throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
+            throw EasyWalletException(EasyWalletErrCode.WALLET_NAME_DUPLICATED)
         }
         expectWalletFile.parentFile?.mkdirs()
         val generateBip44Wallet =

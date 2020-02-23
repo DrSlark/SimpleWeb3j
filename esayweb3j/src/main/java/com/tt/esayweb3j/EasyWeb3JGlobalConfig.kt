@@ -3,9 +3,10 @@ package com.tt.esayweb3j
 import com.tt.esayweb3j.impl.EasyWalletCenter
 import com.tt.esayweb3j.impl.EthNet
 import com.tt.esayweb3j.impl.TokenBalanceCache
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 
 object EasyWeb3JGlobalConfig {
-
 
     lateinit var walletBaseDirPath: String
         private set
@@ -21,10 +22,13 @@ object EasyWeb3JGlobalConfig {
         this.cacheDirPath = cacheDirPath
     }
 
-    fun init() {
+    fun initLocal() {
         TokenBalanceCache.init()
-        EthNet.init()
         EasyWalletCenter.init()
     }
+
+    fun initWeb3jService() = Observable.fromCallable {
+        EthNet.init()
+    }.subscribeOn(Schedulers.io())
 
 }

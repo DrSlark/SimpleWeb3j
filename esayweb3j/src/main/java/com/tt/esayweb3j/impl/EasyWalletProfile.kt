@@ -1,10 +1,8 @@
-package com.tt.esayweb3j
+package com.tt.esayweb3j.impl
 
-import com.google.gson.Gson
 import com.google.gson.annotations.Expose
-import org.web3j.crypto.*
-import java.io.File
-import java.lang.Exception
+import org.web3j.crypto.EasyBip44Wallet
+import org.web3j.crypto.Hash
 
 /**
  * 1 生成助记词 `

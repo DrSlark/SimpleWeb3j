@@ -1,7 +1,6 @@
 package com.tt.esayweb3j
 
 import java.math.BigDecimal
-import java.math.BigInteger
 
 data class EthTokenBalanceInfo(
     val contractAddr: String,

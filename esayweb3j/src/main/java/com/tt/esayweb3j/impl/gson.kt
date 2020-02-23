@@ -1,4 +1,4 @@
-package com.tt.esayweb3j.utils
+package com.tt.esayweb3j.impl
 
 import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
@@ -16,7 +16,7 @@ val gson = GsonBuilder()
         }
 
     })
-    .addSerializationExclusionStrategy(object :ExclusionStrategy {
+    .addSerializationExclusionStrategy(object : ExclusionStrategy {
         override fun shouldSkipClass(clazz: Class<*>?): Boolean {
             return false
         }

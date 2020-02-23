@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import com.google.gson.Gson
-import com.tt.esayweb3j.EasyWalletCenter
+import com.tt.esayweb3j.SingleEasyWallet
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         Observable.fromCallable {
-            EasyWalletCenter.listAllWalletNames()
+            SingleEasyWallet.listAllWalletNames()
         }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
             walletNames.text = it.takeIf { it.isNotEmpty() }?.reduce { acc, s ->
                 "$s\n$acc"
@@ -43,11 +43,12 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val passwordStr = password.editText?.editableText?.toString() ?: kotlin.run {
+                // 一般>8位
                 showToast("empty password")
                 return@setOnClickListener
             }
             Observable.fromCallable {
-                EasyWalletCenter.generate(name = walletNameStr, password = passwordStr)
+                SingleEasyWallet.generate(name = walletNameStr, password = passwordStr)
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
@@ -70,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             Observable.fromCallable {
-                EasyWalletCenter.unlock(name = walletNameStr, password = passwordStr)
+                SingleEasyWallet.unlock(name = walletNameStr, password = passwordStr)
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
@@ -85,8 +86,8 @@ class MainActivity : AppCompatActivity() {
             }
 
             Observable.fromCallable {
-                EasyWalletCenter.deleteAccount(name = walletNameStr)
-                EasyWalletCenter.listAllWalletNames()
+                SingleEasyWallet.deleteWallet(name = walletNameStr)
+                SingleEasyWallet.listAllWalletNames()
             }.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
@@ -101,9 +102,8 @@ class MainActivity : AppCompatActivity() {
                 showToast("empty walletName")
                 return@setOnClickListener
             }
-            EasyWalletCenter.lock(walletNameStr)
+            SingleEasyWallet.lock(walletNameStr)
         }
-
 
     }
 

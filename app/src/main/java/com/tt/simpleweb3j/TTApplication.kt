@@ -21,7 +21,7 @@ class TTApplication : Application() {
             } else {
                 "/release"
             },
-            web3JUrl = "Add your wallet"
+            web3JUrl = "Add your web3j url"
         )
         EasyWeb3JGlobalConfig.initLocal()
         EasyWeb3JGlobalConfig.initWeb3jService().observeOn(AndroidSchedulers.mainThread())

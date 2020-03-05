@@ -21,11 +21,9 @@ object SingleEasyWallet {
 
     fun unlock(name: String, password: String): EasyWalletProfile {
         return (EasyWalletCenter.getUnlockedWallet(name)
-            ?: EasyWalletCenter.unlock(name, password))
-            .also {
-                unlockedWallet = it
-            }
-
+            ?: EasyWalletCenter.unlock(name, password)).also {
+            unlockedWallet = it
+        }
     }
 
     fun lock(name: String? = null) {

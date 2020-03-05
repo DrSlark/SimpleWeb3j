@@ -12,9 +12,9 @@
  */
 package org.web3j.abi;
 
-import java.util.List;
-
 import org.web3j.abi.datatypes.Type;
+
+import java.util.List;
 
 /** Persisted solidity event parameters. */
 public class EventValues {

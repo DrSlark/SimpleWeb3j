@@ -9,6 +9,7 @@ data class EasyWalletProfile(
     var name: String,
     val walletFileName: String,
     val defaultEthAddress: String,
+    val createTime: Long,
     @Expose(serialize = false, deserialize = false)
     val easyBip44Wallet: EasyBip44Wallet? = null
 ) {
@@ -22,4 +23,5 @@ data class EasyWalletProfile(
             Hash.sha256(mnemonic.toByteArray())
         )
     }
+
 }

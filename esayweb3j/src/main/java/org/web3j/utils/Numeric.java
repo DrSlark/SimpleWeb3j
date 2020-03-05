@@ -12,12 +12,12 @@
  */
 package org.web3j.utils;
 
+import org.web3j.exceptions.MessageDecodingException;
+import org.web3j.exceptions.MessageEncodingException;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
-
-import org.web3j.exceptions.MessageDecodingException;
-import org.web3j.exceptions.MessageEncodingException;
 
 /**
  * Message codec functions.

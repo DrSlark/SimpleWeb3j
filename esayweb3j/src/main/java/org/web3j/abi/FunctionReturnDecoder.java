@@ -12,13 +12,13 @@
  */
 package org.web3j.abi;
 
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.spi.FunctionReturnDecoderProvider;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
-
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.spi.FunctionReturnDecoderProvider;
 
 /**
  * Decodes values returned by function or event calls.

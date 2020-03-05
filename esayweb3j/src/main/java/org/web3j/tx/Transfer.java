@@ -12,12 +12,6 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.RemoteCall;
@@ -25,6 +19,12 @@ import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 /** Class for performing Ether transactions on the Ethereum blockchain. */
 public class Transfer extends ManagedTransaction {

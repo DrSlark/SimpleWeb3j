@@ -12,6 +12,10 @@
  */
 package org.web3j.crypto;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.web3j.utils.Numeric;
+import org.web3j.utils.Strings;
+
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
@@ -22,11 +26,6 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Arrays;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import org.web3j.utils.Numeric;
-import org.web3j.utils.Strings;
 
 import static org.web3j.crypto.SecureRandomUtils.secureRandom;
 

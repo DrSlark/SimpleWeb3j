@@ -12,15 +12,15 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
+
+import java.io.IOException;
+import java.math.BigInteger;
 
 /** Transaction manager implementation for read-only operations on smart contracts. */
 public class ReadonlyTransactionManager extends TransactionManager {

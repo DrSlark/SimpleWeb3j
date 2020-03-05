@@ -12,6 +12,12 @@
  */
 package org.web3j.crypto;
 
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.bouncycastle.crypto.generators.SCrypt;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.web3j.utils.Numeric;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -24,13 +30,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import org.bouncycastle.crypto.digests.SHA256Digest;
-import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
-import org.bouncycastle.crypto.generators.SCrypt;
-import org.bouncycastle.crypto.params.KeyParameter;
-
-import org.web3j.utils.Numeric;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.web3j.crypto.SecureRandomUtils.secureRandom;

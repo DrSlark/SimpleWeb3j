@@ -12,9 +12,6 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.Hash;
 import org.web3j.crypto.RawTransaction;
@@ -31,6 +28,9 @@ import org.web3j.tx.exceptions.TxHashMismatchException;
 import org.web3j.tx.response.TransactionReceiptProcessor;
 import org.web3j.utils.Numeric;
 import org.web3j.utils.TxHashVerifier;
+
+import java.io.IOException;
+import java.math.BigInteger;
 
 /**
  * TransactionManager implementation using Ethereum wallet file to create and sign transactions

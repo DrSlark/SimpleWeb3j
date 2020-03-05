@@ -12,12 +12,12 @@
  */
 package org.web3j.utils;
 
-import java.io.IOException;
-
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+
+import java.io.IOException;
 
 /** Revert reason extraction and retrieval functions. */
 public class RevertReasonExtractor {

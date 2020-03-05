@@ -12,18 +12,18 @@
  */
 package org.web3j.abi;
 
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.spi.FunctionEncoderProvider;
+import org.web3j.crypto.Hash;
+import org.web3j.utils.Numeric;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
-
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.spi.FunctionEncoderProvider;
-import org.web3j.crypto.Hash;
-import org.web3j.utils.Numeric;
 
 import static org.web3j.abi.TypeDecoder.instantiateType;
 import static org.web3j.abi.TypeReference.makeTypeReference;

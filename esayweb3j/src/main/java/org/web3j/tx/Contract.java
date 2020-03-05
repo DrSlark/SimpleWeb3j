@@ -12,17 +12,6 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.EventValues;
 import org.web3j.abi.FunctionEncoder;
@@ -47,6 +36,17 @@ import org.web3j.tx.exceptions.ContractCallException;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Numeric;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.web3j.utils.RevertReasonExtractor.extractRevertReason;
 

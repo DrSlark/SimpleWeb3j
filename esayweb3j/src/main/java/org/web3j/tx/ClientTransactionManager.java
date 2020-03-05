@@ -12,9 +12,6 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.request.Transaction;
@@ -22,6 +19,9 @@ import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthGetCode;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.tx.response.TransactionReceiptProcessor;
+
+import java.io.IOException;
+import java.math.BigInteger;
 
 /**
  * TransactionManager implementation for using an Ethereum node to transact.

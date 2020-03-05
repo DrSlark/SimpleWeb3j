@@ -1,19 +1,16 @@
 package com.tt.esayweb3j.impl
 
-import com.tt.esayweb3j.EasyWalletErrCode
-import com.tt.esayweb3j.EasyWalletException
-import com.tt.esayweb3j.EasyWeb3JGlobalConfig
+import com.tt.esayweb3j.*
 import org.web3j.crypto.EasyBip44WalletUtils
+import org.web3j.crypto.MnemonicUtils
 import java.io.File
 
 
 object EasyWalletCenter {
-    private data class WalletsMeta(
-        val walletNames: List<String>
-    )
 
     // 这里有所有解锁的钱包 具体用哪一个可以在外面找个变量存一下
     private val unlockedWallets = mutableMapOf<String, EasyWalletProfile>()
+    private val nameToWalletMap = mutableMapOf<String, EasyWalletProfile>()
     private var walletBaseDirPath: String = ""
 
     fun getUnlockedWallet(walletName: String) = unlockedWallets[walletName]
@@ -28,102 +25,66 @@ object EasyWalletCenter {
         f.mkdirs()
     }
 
+    fun listAllWalletProfile(): List<EasyWalletProfile> {
+        return nameToWalletMap.values.toMutableList().apply {
+            sortByDescending { it.createTime }
+        }
+    }
+
     fun listAllWalletNames(): List<String> {
-        return kotlin.runCatching {
-            val walletsMetaFile = File(walletBaseDirPath, "meta")
-            val walletsMete =
-                gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
-            walletsMete.walletNames
-        }.getOrDefault(emptyList())
+        return listAllWalletProfile().map { it.name }
+    }
+
+    fun loadAllWallet() {
+        kotlin.runCatching {
+            val dir = File(walletBaseDirPath)
+            if (dir.isDirectory) {
+                dir.listFiles()?.forEach { file ->
+                    kotlin.runCatching {
+                        val readText = file.readText()
+                        val ap = gson.fromJson(readText, EasyWalletProfile::class.java)
+                        nameToWalletMap[ap.name] = ap
+                    }
+                }
+            } else {
+                dir.delete()
+            }
+        }
     }
 
     fun deleteWallet(name: String) {
-        val walletsMetaFile = File(walletBaseDirPath, "meta")
-        val walletsMete =
-            gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
-
-        val newWalletsMeta =
-            walletsMete.copy(walletNames = walletsMete.walletNames.filter { it != name })
-        walletsMetaFile.writeText(gson.toJson(newWalletsMeta))
-
-
-        val expectWalletFile = File(
-            walletBaseDirPath,
-            EasyWalletProfile.getFileName(name)
-        )
-        val profile =
-            kotlin.runCatching {
-                gson.fromJson(expectWalletFile.reader(), EasyWalletProfile::class.java)
-            }.getOrElse {
-                throw EasyWalletException(
-                    EasyWalletErrCode.OTHER,
-                    "deserialize EasyWalletProfile error",
-                    it
-                )
-            }
-
-        val walletFile = File(walletBaseDirPath, profile.walletFileName)
-        walletFile.delete()
-        expectWalletFile.delete()
-
+        val walletProfile =
+            nameToWalletMap[name] ?: throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
+        File(walletBaseDirPath, walletProfile.walletFileName).delete()
+        File(walletBaseDirPath, walletProfile.defaultEthAddress).delete()
+        nameToWalletMap.remove(name)
+        unlockedWallets.remove(name)
     }
 
     fun generate(name: String, password: String): EasyWalletProfile {
-        val expectWalletFile = File(
-            walletBaseDirPath,
-            EasyWalletProfile.getFileName(name)
-        )
-        if (expectWalletFile.exists()) {
+        if (nameToWalletMap.containsKey(name)) {
             throw EasyWalletException(EasyWalletErrCode.WALLET_NAME_DUPLICATED)
         }
-        expectWalletFile.parentFile?.mkdirs()
         val generateBip44Wallet =
             EasyBip44WalletUtils.generateBip44Wallet(password, File(walletBaseDirPath))
 
-        val walletsMetaFile = File(walletBaseDirPath, "meta")
-        val walletsMete = runCatching {
-            gson.fromJson<WalletsMeta>(walletsMetaFile.readText(), WalletsMeta::class.java)
-        }.getOrElse { WalletsMeta(emptyList()) }
-        walletsMetaFile.writeText(
-            gson.toJson(
-                WalletsMeta(
-                    walletNames = mutableListOf(name).apply {
-                        addAll(
-                            walletsMete.walletNames
-                        )
-                    })
-            )
-        )
-
         return EasyWalletProfile(
             name = name,
+            createTime = System.currentTimeMillis(),
             walletFileName = generateBip44Wallet.filename,
             defaultEthAddress = generateBip44Wallet.ethCredentials.address,
             easyBip44Wallet = generateBip44Wallet
-        ).also { expectWalletFile.writeText(gson.toJson(it)) }
+        ).also {
+            saveEasyWalletProfile(it)
+            unlockedWallets[name] = it
+        }
     }
 
     fun unlock(name: String, password: String): EasyWalletProfile {
-        val expectWalletFile = File(
-            walletBaseDirPath,
-            EasyWalletProfile.getFileName(name)
-        )
-        if (!expectWalletFile.exists()) {
-            throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
-        }
+        val walletProfile =
+            nameToWalletMap[name] ?: throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
 
-        val profile =
-            kotlin.runCatching {
-                gson.fromJson(expectWalletFile.reader(), EasyWalletProfile::class.java)
-            }.getOrElse {
-                throw EasyWalletException(
-                    EasyWalletErrCode.OTHER,
-                    "deserialize EasyWalletProfile error",
-                    it
-                )
-            }
-
-        val walletFile = File(walletBaseDirPath, profile.walletFileName)
+        val walletFile = File(walletBaseDirPath, walletProfile.walletFileName)
         val easyBip44Wallet = kotlin.runCatching {
             EasyBip44WalletUtils.loadEasyBip44Wallet(password, walletFile)
         }.getOrElse {
@@ -134,17 +95,59 @@ object EasyWalletCenter {
             )
         }
 
-        val newProfile = profile.copy(easyBip44Wallet = easyBip44Wallet)
+        val newProfile = walletProfile.copy(easyBip44Wallet = easyBip44Wallet)
         unlockedWallets[name] = newProfile
         return newProfile
     }
 
     fun lock(name: String) {
-        unlockedWallets.remove(
-            EasyWalletProfile.getFileName(
-                name
-            )
-        )
+        unlockedWallets.remove(name)
+    }
+
+
+    fun changeName(oldName: String, newName: String) {
+        val walletProfile =
+            nameToWalletMap[oldName]
+                ?: throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
+        val newProfile = walletProfile.copy(name = newName)
+        saveEasyWalletProfile(newProfile)
+    }
+
+    fun importMnemonic(mnemonic: String, name: String, password: String): EasyWalletProfile {
+        if (!MnemonicUtils.validateMnemonic(mnemonic)) {
+            throw MnemonicInvalidException()
+        }
+
+        if (nameToWalletMap.containsKey(name)) {
+            throw EasyWalletException(EasyWalletErrCode.WALLET_NAME_DUPLICATED)
+        }
+
+        val newDefaultEthAddr = EasyBip44WalletUtils.mnemonicToDefaultEthAddr(mnemonic)
+
+        nameToWalletMap.values.find { it.defaultEthAddress == newDefaultEthAddr }?.let {
+            throw WalletMnemonicException(it.name)
+        }
+
+        val generateBip44Wallet =
+            EasyBip44WalletUtils.recoverBip44Wallet(mnemonic, password, File(walletBaseDirPath))
+
+        return EasyWalletProfile(
+            name = name,
+            createTime = System.currentTimeMillis(),
+            walletFileName = generateBip44Wallet.filename,
+            defaultEthAddress = generateBip44Wallet.ethCredentials.address,
+            easyBip44Wallet = generateBip44Wallet
+        ).also {
+            saveEasyWalletProfile(it)
+            unlockedWallets[name] = it
+        }
+    }
+
+    private fun saveEasyWalletProfile(profile: EasyWalletProfile) {
+        val expectWalletFile = File(walletBaseDirPath, profile.defaultEthAddress)
+        expectWalletFile.parentFile?.mkdirs()
+        expectWalletFile.writeText(gson.toJson(profile))
+        nameToWalletMap[profile.name] = profile
     }
 
 

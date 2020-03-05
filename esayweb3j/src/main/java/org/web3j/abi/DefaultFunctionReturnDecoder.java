@@ -12,10 +12,6 @@
  */
 package org.web3j.abi;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.web3j.abi.datatypes.Array;
 import org.web3j.abi.datatypes.Bytes;
 import org.web3j.abi.datatypes.BytesType;
@@ -27,6 +23,10 @@ import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.utils.Numeric;
 import org.web3j.utils.Strings;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.web3j.abi.TypeDecoder.MAX_BYTE_LENGTH_FOR_HEX_STRING;
 

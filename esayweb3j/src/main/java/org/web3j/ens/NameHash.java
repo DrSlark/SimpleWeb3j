@@ -12,12 +12,12 @@
  */
 package org.web3j.ens;
 
+import org.web3j.crypto.Hash;
+import org.web3j.utils.Numeric;
+
 import java.net.IDN;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
-import org.web3j.crypto.Hash;
-import org.web3j.utils.Numeric;
 
 /** ENS name hash implementation. */
 public class NameHash {

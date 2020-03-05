@@ -12,9 +12,6 @@
  */
 package org.web3j.abi;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-
 import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Array;
 import org.web3j.abi.datatypes.Bool;
@@ -30,6 +27,9 @@ import org.web3j.abi.datatypes.Uint;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.primitive.PrimitiveType;
 import org.web3j.utils.Numeric;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 
 import static org.web3j.abi.datatypes.Type.MAX_BIT_LENGTH;
 import static org.web3j.abi.datatypes.Type.MAX_BYTE_LENGTH;

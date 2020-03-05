@@ -12,12 +12,12 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.tx.response.TransactionReceiptProcessor;
+
+import java.io.IOException;
+import java.math.BigInteger;
 
 /**
  * Simple RawTransactionManager derivative that manages nonces to facilitate multiple transactions

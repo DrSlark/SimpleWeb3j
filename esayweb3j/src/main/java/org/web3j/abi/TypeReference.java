@@ -12,14 +12,14 @@
  */
 package org.web3j.abi;
 
+import org.web3j.abi.datatypes.AbiTypes;
+import org.web3j.abi.datatypes.DynamicArray;
+import org.web3j.abi.datatypes.StaticArray;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.web3j.abi.datatypes.AbiTypes;
-import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.StaticArray;
 
 /**
  * Type wrapper to get around limitations of Java's type erasure. This is so that we can pass around

@@ -12,9 +12,6 @@
  */
 package org.web3j.tx;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthCall;
@@ -25,6 +22,9 @@ import org.web3j.protocol.exceptions.TransactionException;
 import org.web3j.tx.exceptions.ContractCallException;
 import org.web3j.tx.response.PollingTransactionReceiptProcessor;
 import org.web3j.tx.response.TransactionReceiptProcessor;
+
+import java.io.IOException;
+import java.math.BigInteger;
 
 import static org.web3j.protocol.core.JsonRpc2_0Web3j.DEFAULT_BLOCK_TIME;
 

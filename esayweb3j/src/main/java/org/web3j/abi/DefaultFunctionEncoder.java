@@ -12,13 +12,13 @@
  */
 package org.web3j.abi;
 
-import java.math.BigInteger;
-import java.util.List;
-
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.StaticArray;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Uint;
+
+import java.math.BigInteger;
+import java.util.List;
 
 public class DefaultFunctionEncoder extends FunctionEncoder {
 

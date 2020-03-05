@@ -12,10 +12,10 @@
  */
 package org.web3j.rlp;
 
+import org.web3j.utils.Numeric;
+
 import java.math.BigInteger;
 import java.util.Arrays;
-
-import org.web3j.utils.Numeric;
 
 /** RLP string type. */
 public class RlpString implements RlpType {

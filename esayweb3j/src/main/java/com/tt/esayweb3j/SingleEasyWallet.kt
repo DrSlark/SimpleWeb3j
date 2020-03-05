@@ -128,7 +128,7 @@ object SingleEasyWallet {
         gasPrice: BigInteger,
         gasLimit: BigInteger = 60000.toBigInteger()
     ): Flowable<TransactionReceipt> {
-        val credentials = unlockedWallet?.easyBip44Wallet?.ethCredentials
+        val credentials = unlockedWallet?.easyBip44Wallet?.defaultEthCredentials
             ?: return Flowable.error(EasyWalletException(EasyWalletErrCode.LOCKED))
 
         return EthNet.sendErc20Tx(
@@ -156,7 +156,7 @@ object SingleEasyWallet {
         gasPrice: BigInteger,
         gasLimit: BigInteger = 60000.toBigInteger()
     ): Flowable<TransactionReceipt> {
-        val credentials = unlockedWallet?.easyBip44Wallet?.ethCredentials
+        val credentials = unlockedWallet?.easyBip44Wallet?.defaultEthCredentials
             ?: return Flowable.error(EasyWalletException(EasyWalletErrCode.LOCKED))
 
         return EthNet.sendEth(

@@ -2,16 +2,30 @@ package org.web3j.crypto
 
 import com.tt.esayweb3j.Bip44PathInvalidException
 import com.tt.esayweb3j.MnemonicInvalidException
+import com.tt.esayweb3j.impl.EasyWalletProfile
 import org.web3j.crypto.Bip32ECKeyPair.HARDENED_BIT
 import java.io.File
 import java.io.IOException
 
 data class EasyBip44Wallet(
     val filename: String,
-    val mnemonic: String,
-    val ethCredentials: Credentials
-)
+    val mnemonic: String
+) {
+    val defaultEthCredentials = Credentials.create(
+        EasyBip44WalletUtils.generateBip44KeyPair(
+            mnemonic
+        )
+    )
 
+    fun getCredentials(bip44Path: String) =
+        Credentials.create(
+            EasyBip44WalletUtils.generateBip44KeyPair(
+                mnemonic,
+                bip44Path
+            )
+        )
+
+}
 
 
 object EasyBip44WalletUtils : WalletUtils() {
@@ -22,17 +36,15 @@ object EasyBip44WalletUtils : WalletUtils() {
         SecureRandomUtils.secureRandom().nextBytes(initialEntropy)
 
         val mnemonic = MnemonicUtils.generateMnemonic(initialEntropy)
-        val seed = MnemonicUtils.generateSeed(mnemonic, null)
-        val masterKeypair = Bip32ECKeyPair.generateKeyPair(seed)
-        val bip44Keypair = generateBip44KeyPair(masterKeypair)
+
+        val bip44Keypair = generateBip44KeyPair(mnemonic)
 
         val walletFile =
             generateWalletFile(password, initialEntropy, bip44Keypair, destinationDirectory)
 
         return EasyBip44Wallet(
             filename = walletFile,
-            mnemonic = mnemonic,
-            ethCredentials = Credentials.create(bip44Keypair)
+            mnemonic = mnemonic
         )
     }
 
@@ -40,9 +52,7 @@ object EasyBip44WalletUtils : WalletUtils() {
         if (!MnemonicUtils.validateMnemonic(mnemonic)) {
             throw MnemonicInvalidException()
         }
-        val seed = MnemonicUtils.generateSeed(mnemonic, null)
-        val masterKeypair = Bip32ECKeyPair.generateKeyPair(seed)
-        val bip44Keypair = generateBip44KeyPair(masterKeypair)
+        val bip44Keypair = generateBip44KeyPair(mnemonic)
         return Credentials.create(bip44Keypair).address
     }
 
@@ -54,37 +64,26 @@ object EasyBip44WalletUtils : WalletUtils() {
         val entropy = kotlin.runCatching { MnemonicUtils.generateEntropy(mnemonic) }
             .getOrElse { throw  MnemonicInvalidException() }
 
-        val seed = MnemonicUtils.generateSeed(mnemonic, null)
-        val masterKeypair = Bip32ECKeyPair.generateKeyPair(seed)
-        val bip44Keypair = generateBip44KeyPair(masterKeypair)
+        val bip44Keypair = generateBip44KeyPair(mnemonic)
 
         val walletFile =
             generateWalletFile(password, entropy, bip44Keypair, destinationDirectory)
 
         return EasyBip44Wallet(
             filename = walletFile,
-            mnemonic = mnemonic,
-            ethCredentials = Credentials.create(bip44Keypair)
+            mnemonic = mnemonic
         )
     }
-
 
     fun loadEasyBip44Wallet(password: String, walletFile: File): EasyBip44Wallet {
         val walletFileObj = objectMapper.readValue<WalletFile>(walletFile, WalletFile::class.java)
         val initialEntropy = Wallet.decryptToPlainBytes(password, walletFileObj)
-
         val mnemonic = MnemonicUtils.generateMnemonic(initialEntropy)
-        val seed = MnemonicUtils.generateSeed(mnemonic, null)
-        val masterKeypair = Bip32ECKeyPair.generateKeyPair(seed)
-        val bip44Keypair = generateBip44KeyPair(masterKeypair)
-
         return EasyBip44Wallet(
             filename = walletFile.name,
-            mnemonic = mnemonic,
-            ethCredentials = Credentials.create(bip44Keypair)
+            mnemonic = mnemonic
         )
     }
-
 
     @Throws(CipherException::class, IOException::class)
     private fun generateWalletFile(
@@ -98,14 +97,13 @@ object EasyBip44WalletUtils : WalletUtils() {
     }
 
     fun generateBip44KeyPair(
-        master: Bip32ECKeyPair,
-        path: String = "m/44'/60'/0'/0/0"
+        validMnemonic: String,
+        path: String = EasyWalletProfile.EthBip44CommunityDefault
     ): Bip32ECKeyPair {
-        // Although Eth official bip44 path is "m/44'/60'/0'/0/"
-        // but in most of apps they use "m/44'/60'/0'/0/0"
-//        val path = intArrayOf(44 or HARDENED_BIT, 60 or HARDENED_BIT, 0 or HARDENED_BIT, 0, 0)
+        val seed = MnemonicUtils.generateSeed(validMnemonic, null)
+        val masterKeypair = Bip32ECKeyPair.generateKeyPair(seed)
         val pathArray = bip44PathToIntArrayPath(path)
-        return Bip32ECKeyPair.deriveKeyPair(master, pathArray)
+        return Bip32ECKeyPair.deriveKeyPair(masterKeypair, pathArray)
     }
 
     fun bip44PathToIntArrayPath(path: String): IntArray {

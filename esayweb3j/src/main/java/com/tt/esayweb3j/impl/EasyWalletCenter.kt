@@ -56,7 +56,7 @@ object EasyWalletCenter {
         val walletProfile =
             nameToWalletMap[name] ?: throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
         File(walletBaseDirPath, walletProfile.walletFileName).delete()
-        File(walletBaseDirPath, walletProfile.defaultEthAddress).delete()
+        File(walletBaseDirPath, walletProfile.defaultEthAddress()).delete()
         nameToWalletMap.remove(name)
         unlockedWallets.remove(name)
     }
@@ -68,13 +68,7 @@ object EasyWalletCenter {
         val generateBip44Wallet =
             EasyBip44WalletUtils.generateBip44Wallet(password, File(walletBaseDirPath))
 
-        return EasyWalletProfile(
-            name = name,
-            createTime = System.currentTimeMillis(),
-            walletFileName = generateBip44Wallet.filename,
-            defaultEthAddress = generateBip44Wallet.ethCredentials.address,
-            easyBip44Wallet = generateBip44Wallet
-        ).also {
+        return EasyWalletProfile.create(name, generateBip44Wallet).also {
             saveEasyWalletProfile(it)
             unlockedWallets[name] = it
         }
@@ -104,7 +98,6 @@ object EasyWalletCenter {
         unlockedWallets.remove(name)
     }
 
-
     fun changeName(oldName: String, newName: String) {
         val walletProfile =
             nameToWalletMap[oldName]
@@ -124,27 +117,21 @@ object EasyWalletCenter {
 
         val newDefaultEthAddr = EasyBip44WalletUtils.mnemonicToDefaultEthAddr(mnemonic)
 
-        nameToWalletMap.values.find { it.defaultEthAddress == newDefaultEthAddr }?.let {
+        nameToWalletMap.values.find { it.defaultEthAddress() == newDefaultEthAddr }?.let {
             throw WalletMnemonicException(it.name)
         }
 
         val generateBip44Wallet =
             EasyBip44WalletUtils.recoverBip44Wallet(mnemonic, password, File(walletBaseDirPath))
 
-        return EasyWalletProfile(
-            name = name,
-            createTime = System.currentTimeMillis(),
-            walletFileName = generateBip44Wallet.filename,
-            defaultEthAddress = generateBip44Wallet.ethCredentials.address,
-            easyBip44Wallet = generateBip44Wallet
-        ).also {
+        return EasyWalletProfile.create(name, generateBip44Wallet).also {
             saveEasyWalletProfile(it)
             unlockedWallets[name] = it
         }
     }
 
     private fun saveEasyWalletProfile(profile: EasyWalletProfile) {
-        val expectWalletFile = File(walletBaseDirPath, profile.defaultEthAddress)
+        val expectWalletFile = File(walletBaseDirPath, profile.defaultEthAddress())
         expectWalletFile.parentFile?.mkdirs()
         expectWalletFile.writeText(gson.toJson(profile))
         nameToWalletMap[profile.name] = profile

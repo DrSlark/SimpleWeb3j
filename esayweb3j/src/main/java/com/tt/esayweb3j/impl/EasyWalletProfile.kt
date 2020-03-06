@@ -5,8 +5,9 @@ import com.tt.esayweb3j.EasyWalletErrCode
 import com.tt.esayweb3j.EasyWalletException
 import org.web3j.crypto.*
 import org.web3j.utils.Numeric
+import java.lang.Exception
 
-data class Bip44PathAddr(
+data class Bip44DeriveProfile(
     val path: String,
     val address: String,
     // 也许你们要给每个地址取名字呢？
@@ -19,14 +20,21 @@ data class Bip44PathAddr(
                 path
             )
         )
+
+    fun getIndex(): Int {
+        return path.substringAfterLast("/").toInt()
+    }
 }
 
+class IllegalEthBip44CommunityPathException : Exception()
 
 data class EasyWalletProfile(
     var name: String,
     val walletFileName: String,
     val createTime: Long,
-    val bip44Paths: ArrayList<Bip44PathAddr>,
+    val ethBip44CommunityPaths: ArrayList<Bip44DeriveProfile>,
+    // 暂时没用
+    val ethNotBip44CommunityPaths: ArrayList<Bip44DeriveProfile> = ArrayList(),
     @Expose(serialize = false, deserialize = false)
     val easyBip44Wallet: EasyBip44Wallet? = null
 ) {
@@ -40,14 +48,22 @@ data class EasyWalletProfile(
             name = name,
             walletFileName = easyBip44Wallet.filename,
             createTime = System.currentTimeMillis(),
-            bip44Paths = arrayListOf(
-                Bip44PathAddr(
+            ethBip44CommunityPaths = arrayListOf(
+                Bip44DeriveProfile(
                     EthBip44CommunityDefault,
                     easyBip44Wallet.defaultEthCredentials.address
                 )
             ),
             easyBip44Wallet = easyBip44Wallet
         )
+    }
+
+    fun getCredentialsByAddress(address: String): Credentials {
+        val mnemonic =
+            easyBip44Wallet?.mnemonic ?: throw EasyWalletException(EasyWalletErrCode.LOCKED)
+        return (ethBip44CommunityPaths.find { it.address == address }
+            ?: ethNotBip44CommunityPaths.find { it.address == address })?.getCredentials(mnemonic)
+            ?: throw EasyWalletException(EasyWalletErrCode.ADDRESS_NOT_FOUND)
     }
 
     fun accessToken(): String? {
@@ -58,14 +74,37 @@ data class EasyWalletProfile(
         )
     }
 
-    fun defaultEthAddress() = bip44Paths[0].address
+    fun defaultEthAddress() = ethBip44CommunityPaths[0].address
 
-    fun addBip44Path(path: String) {
-        easyBip44Wallet ?: throw EasyWalletException(EasyWalletErrCode.LOCKED)
-        bip44Paths.find { it.path == path }?.let {
-            // already exist do nothing
-            return
+    fun addEthBip44CommunityPath(path: String): Bip44DeriveProfile {
+        if (path.substringBeforeLast("/") != EthBip44CommunityPrefix.substringBeforeLast("/")) {
+            throw IllegalEthBip44CommunityPathException()
         }
-        bip44Paths.add(Bip44PathAddr(path, easyBip44Wallet.getCredentials(path).address))
+        easyBip44Wallet ?: throw EasyWalletException(EasyWalletErrCode.LOCKED)
+        ethBip44CommunityPaths.find { it.path == path }?.let {
+            // already exist do nothing
+            return it
+        }
+        return Bip44DeriveProfile(path, easyBip44Wallet.getCredentials(path).address).also {
+            ethBip44CommunityPaths.add(it)
+            ethBip44CommunityPaths.sortBy {
+                it.getIndex()
+            }
+        }
     }
+
+    fun easyAddCommunityAddress(index: Int? = null): Bip44DeriveProfile {
+        val nowIndex =
+            index ?: ethBip44CommunityPaths.last().getIndex() + 1
+        return addEthBip44CommunityPath(String.format(EthBip44CommunityPrefix, nowIndex))
+    }
+
+    fun deleteCommunityBip44ByIndex(index: Int) {
+        ethBip44CommunityPaths.removeIf { it.getIndex() == index }
+    }
+
+    fun deleteCommunityBip44ByAddress(address: String) {
+        ethBip44CommunityPaths.removeIf { it.address == address }
+    }
+
 }

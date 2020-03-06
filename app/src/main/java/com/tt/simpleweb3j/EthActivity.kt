@@ -25,7 +25,7 @@ class EthActivity : AppCompatActivity() {
         setContentView(R.layout.activity_eth)
 
         appendText("Name: ${SingleEasyWallet.unlockedWallet?.name}\n")
-        appendText("EthAddr: ${SingleEasyWallet.unlockedWallet?.defaultEthAddress}\n")
+        appendText("EthAddr: ${SingleEasyWallet.unlockedWallet?.defaultEthAddress()}\n")
         appendText("Mnemonic: ${SingleEasyWallet.unlockedWallet?.easyBip44Wallet?.mnemonic}")
 
 

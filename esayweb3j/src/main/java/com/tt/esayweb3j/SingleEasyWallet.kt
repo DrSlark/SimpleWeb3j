@@ -6,6 +6,7 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import org.web3j.protocol.core.methods.response.TransactionReceipt
+import java.lang.IllegalArgumentException
 import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
 
@@ -17,7 +18,9 @@ object SingleEasyWallet {
     var unlockedWallet: EasyWalletProfile? = null
         private set
 
-    fun listAllWalletNames() = EasyWalletCenter.listAllWalletNames()
+    fun listAllWalletNames() = EasyWalletCenter.listAllWalletProfile().map { it.name }
+
+    fun listAllWalletProfile() = EasyWalletCenter.listAllWalletProfile()
 
     fun unlock(name: String, password: String): EasyWalletProfile {
         return (EasyWalletCenter.getUnlockedWallet(name)
@@ -49,18 +52,11 @@ object SingleEasyWallet {
         }
     }
 
-    /**
-     *
-     * @param tokenAddr
-     * @param onBalanceGetFunc
-     * @param pollEthAddr 传空 就轮询当前登录的地址余额，不然就是轮询指定的地址
-     */
     fun startPollToken(
         tokenAddr: String,
         onBalanceGetFunc: OnBalanceGetFunc,
-        pollEthAddr: String? = null
+        ethAddr: String
     ) {
-        val ethAddr = pollEthAddr ?: unlockedWallet?.defaultEthAddress ?: return
         if (balancePollMap.contains("$ethAddr$tokenAddr")) return
         balancePollMap["$ethAddr$tokenAddr"] = TokenBalancePoll(
             ethAddr = ethAddr,
@@ -69,15 +65,10 @@ object SingleEasyWallet {
         ).also { it.start() }
     }
 
-    /**
-     * @param tokenAddr
-     * @param pollEthAddr 传空 就结束轮询当前登录的地址余额，不然就是结束轮询指定的地址
-     */
     fun endPollToken(
         tokenAddr: String,
-        pollEthAddr: String? = null
+        ethAddr: String
     ) {
-        val ethAddr = pollEthAddr ?: unlockedWallet?.defaultEthAddress ?: return
         balancePollMap["$ethAddr$tokenAddr"]?.let {
             it.end()
             balancePollMap.remove("$ethAddr$tokenAddr")
@@ -87,33 +78,36 @@ object SingleEasyWallet {
     /**
      *
      * @param tokenAddr
-     * @param ethAddr 传空 就轮询当前登录的地址余额，不然就是轮询指定的地址
+     * @param ethAddr
      * @param isDoubleResponse true表示一次从缓存中返回 一次从网络返回
      * @return
      */
     fun getTokenBalance(
         tokenAddr: String,
-        ethAddr: String? = null,
+        ethAddr: String,
         isDoubleResponse: Boolean = false
     ): Observable<EthTokenBalanceInfo> {
-        val realEthAddr = ethAddr ?: unlockedWallet?.defaultEthAddress ?: return Observable.error(
-            Exception("empty eth addr")
-        )
+
         return BehaviorSubject.create<EthTokenBalanceInfo> { emitter ->
-            val cache = TokenBalanceCache.getBalanceInfo(realEthAddr, tokenAddr)
+            val cache = TokenBalanceCache.getBalanceInfo(ethAddr, tokenAddr)
             if (cache != null) {
                 emitter.onNext(cache)
             }
             if (isDoubleResponse) {
-                val tokenBalanceInfo = EthNet.getTokenBalance(realEthAddr, tokenAddr)
-                TokenBalanceCache.addBalanceInfo(realEthAddr, tokenBalanceInfo)
+                val tokenBalanceInfo = EthNet.getTokenBalance(ethAddr, tokenAddr)
+                TokenBalanceCache.addBalanceInfo(ethAddr, tokenBalanceInfo)
                 emitter.onNext(tokenBalanceInfo)
             }
         }.subscribeOn(Schedulers.io())
     }
 
+    fun getTokenBalanceInCache(
+        tokenAddr: String,
+        ethAddr: String
+    ) = TokenBalanceCache.getBalanceInfo(ethAddr, tokenAddr)
+
     /**
-     *
+     * @param myAddr: 你现在用的地址,
      * @param toAddr 发给谁
      * @param erc20ContractAddr 哪个币
      * @param amount 多少钱 注意这里都是最小精度比如 1USDT 的话 这里应该传 100_000_00 单位转化用EthTokenBalanceInfo里面的 方法
@@ -122,14 +116,15 @@ object SingleEasyWallet {
      * @return 这笔交易的状态 根据产品需求去展示吧
      */
     fun sendErc20Tx(
+        myAddr: String,
         toAddr: String,
         erc20ContractAddr: String,
         amount: BigInteger,
         gasPrice: BigInteger,
         gasLimit: BigInteger = 60000.toBigInteger()
     ): Flowable<TransactionReceipt> {
-        val credentials = unlockedWallet?.easyBip44Wallet?.defaultEthCredentials
-            ?: return Flowable.error(EasyWalletException(EasyWalletErrCode.LOCKED))
+        val credentials = unlockedWallet?.getCredentialsByAddress(myAddr)
+            ?: throw EasyWalletException(EasyWalletErrCode.LOCKED)
 
         return EthNet.sendErc20Tx(
             toAddr,
@@ -151,13 +146,14 @@ object SingleEasyWallet {
      * @return
      */
     fun sendEth(
+        myAddr: String,
         toAddr: String,
         amount: BigInteger,
         gasPrice: BigInteger,
         gasLimit: BigInteger = 60000.toBigInteger()
     ): Flowable<TransactionReceipt> {
-        val credentials = unlockedWallet?.easyBip44Wallet?.defaultEthCredentials
-            ?: return Flowable.error(EasyWalletException(EasyWalletErrCode.LOCKED))
+        val credentials = unlockedWallet?.getCredentialsByAddress(myAddr)
+            ?: throw EasyWalletException(EasyWalletErrCode.LOCKED)
 
         return EthNet.sendEth(
             toAddr,

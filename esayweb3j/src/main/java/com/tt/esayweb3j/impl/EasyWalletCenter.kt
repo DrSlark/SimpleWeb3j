@@ -31,10 +31,6 @@ object EasyWalletCenter {
         }
     }
 
-    fun listAllWalletNames(): List<String> {
-        return listAllWalletProfile().map { it.name }
-    }
-
     fun loadAllWallet() {
         kotlin.runCatching {
             val dir = File(walletBaseDirPath)

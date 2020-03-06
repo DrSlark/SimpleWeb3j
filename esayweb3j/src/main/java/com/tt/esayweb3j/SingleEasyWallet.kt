@@ -6,11 +6,15 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import org.web3j.protocol.core.methods.response.TransactionReceipt
-import java.lang.IllegalArgumentException
 import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
 
 object SingleEasyWallet {
+
+
+    private val safeBoxKey = "SingleEasyWalletAutoUnlockKey"
+
+    private val lastUnlockWalletKey = "lastUnlockWallet"
 
     private val balancePollMap = ConcurrentHashMap<String, TokenBalancePoll>()
 
@@ -18,14 +22,43 @@ object SingleEasyWallet {
     var unlockedWallet: EasyWalletProfile? = null
         private set
 
+    fun loadAllWallet() = EasyWalletCenter.loadAllWallet()
+
     fun listAllWalletNames() = EasyWalletCenter.listAllWalletProfile().map { it.name }
 
     fun listAllWalletProfile() = EasyWalletCenter.listAllWalletProfile()
+
+    fun getLastWalletName() = EasyWeb3JGlobalConfig.kvStore.getString(lastUnlockWalletKey, "")
+
+    fun tryToAutoUnlock(): Boolean {
+        val lastSession = EasyWeb3JGlobalConfig.safeBox.get(safeBoxKey)?.let {
+            gson.fromJson(String(it), LastUnlockWallet::class.java)
+        } ?: return false
+
+        return kotlin.runCatching {
+            unlock(lastSession.name, lastSession.password)
+        }.isSuccess.also {
+            if (!it) {
+                EasyWeb3JGlobalConfig.safeBox.delete(safeBoxKey)
+            }
+        }
+    }
 
     fun unlock(name: String, password: String): EasyWalletProfile {
         return (EasyWalletCenter.getUnlockedWallet(name)
             ?: EasyWalletCenter.unlock(name, password)).also {
             unlockedWallet = it
+            EasyWeb3JGlobalConfig.kvStore.edit().putString(lastUnlockWalletKey, it.name).apply()
+            EasyWeb3JGlobalConfig.safeBox.delete(safeBoxKey)
+            EasyWeb3JGlobalConfig.safeBox.store(
+                safeBoxKey,
+                gson.toJson(
+                    LastUnlockWallet(
+                        name = it.name,
+                        password = password
+                    )
+                ).toByteArray()
+            )
         }
     }
 
@@ -34,12 +67,19 @@ object SingleEasyWallet {
         EasyWalletCenter.lock(lockName)
         if (lockName == unlockedWallet?.name) {
             unlockedWallet = null
+            EasyWeb3JGlobalConfig.safeBox.delete(safeBoxKey)
         }
     }
 
     fun generate(name: String, password: String): EasyWalletProfile {
         return EasyWalletCenter.generate(name, password).also {
-            unlockedWallet = it
+            unlock(name, password)
+        }
+    }
+
+    fun recover(mnemonic: String, name: String, password: String): EasyWalletProfile {
+        return EasyWalletCenter.recover(mnemonic, name, password).also {
+            unlock(name, password)
         }
     }
 
@@ -50,6 +90,22 @@ object SingleEasyWallet {
         if (deleteName == unlockedWallet?.name) {
             unlockedWallet = null
         }
+    }
+
+    fun isNameExist(name: String) = EasyWalletCenter.nameToWalletMap.containsKey(name)
+
+    fun changeName(oldName: String, newName: String) {
+        EasyWalletCenter.changeName(oldName, newName)
+        val lastSession = EasyWeb3JGlobalConfig.safeBox.get(safeBoxKey)?.let {
+            gson.fromJson(String(it), LastUnlockWallet::class.java)
+        } ?: return
+
+        EasyWeb3JGlobalConfig.kvStore.edit().putString(lastUnlockWalletKey, newName).apply()
+        EasyWeb3JGlobalConfig.safeBox.store(
+            safeBoxKey, gson.toJson(
+                lastSession.copy(name = newName)
+            ).toByteArray()
+        )
     }
 
     fun startPollToken(

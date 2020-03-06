@@ -9,20 +9,13 @@ import java.io.File
 object EasyWalletCenter {
 
     // 这里有所有解锁的钱包 具体用哪一个可以在外面找个变量存一下
-    private val unlockedWallets = mutableMapOf<String, EasyWalletProfile>()
-    private val nameToWalletMap = mutableMapOf<String, EasyWalletProfile>()
-    private var walletBaseDirPath: String = ""
+    internal val unlockedWallets = mutableMapOf<String, EasyWalletProfile>()
+    internal val nameToWalletMap = mutableMapOf<String, EasyWalletProfile>()
 
     fun getUnlockedWallet(walletName: String) = unlockedWallets[walletName]
 
     fun init() {
-        walletBaseDirPath =
-            EasyWeb3JGlobalConfig.walletBaseDirPath
-        val f = File(walletBaseDirPath)
-        if (f.isFile) {
-            f.delete()
-        }
-        f.mkdirs()
+        EasyWeb3JGlobalConfig.walletBaseDir.mkdirs()
     }
 
     fun listAllWalletProfile(): List<EasyWalletProfile> {
@@ -33,26 +26,22 @@ object EasyWalletCenter {
 
     fun loadAllWallet() {
         kotlin.runCatching {
-            val dir = File(walletBaseDirPath)
-            if (dir.isDirectory) {
-                dir.listFiles()?.forEach { file ->
-                    kotlin.runCatching {
-                        val readText = file.readText()
-                        val ap = gson.fromJson(readText, EasyWalletProfile::class.java)
-                        nameToWalletMap[ap.name] = ap
-                    }
+            EasyWeb3JGlobalConfig.walletBaseDir.takeIf { it.isDirectory }?.listFiles()?.forEach { file ->
+                kotlin.runCatching {
+                    val readText = file.readText()
+                    val ap = gson.fromJson(readText, EasyWalletProfile::class.java)
+                    nameToWalletMap[ap.name] = ap
                 }
-            } else {
-                dir.delete()
-            }
+            } ?: EasyWeb3JGlobalConfig.walletBaseDir.delete()
+
         }
     }
 
     fun deleteWallet(name: String) {
         val walletProfile =
             nameToWalletMap[name] ?: throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
-        File(walletBaseDirPath, walletProfile.walletFileName).delete()
-        File(walletBaseDirPath, walletProfile.defaultEthAddress()).delete()
+        File(EasyWeb3JGlobalConfig.walletBaseDir, walletProfile.walletFileName).delete()
+        File(EasyWeb3JGlobalConfig.walletBaseDir, walletProfile.defaultEthAddress()).delete()
         nameToWalletMap.remove(name)
         unlockedWallets.remove(name)
     }
@@ -62,7 +51,7 @@ object EasyWalletCenter {
             throw EasyWalletException(EasyWalletErrCode.WALLET_NAME_DUPLICATED)
         }
         val generateBip44Wallet =
-            EasyBip44WalletUtils.generateBip44Wallet(password, File(walletBaseDirPath))
+            EasyBip44WalletUtils.generateBip44Wallet(password, EasyWeb3JGlobalConfig.walletBaseDir)
 
         return EasyWalletProfile.create(name, generateBip44Wallet).also {
             saveEasyWalletProfile(it)
@@ -74,7 +63,7 @@ object EasyWalletCenter {
         val walletProfile =
             nameToWalletMap[name] ?: throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
 
-        val walletFile = File(walletBaseDirPath, walletProfile.walletFileName)
+        val walletFile = File(EasyWeb3JGlobalConfig.walletBaseDir, walletProfile.walletFileName)
         val easyBip44Wallet = kotlin.runCatching {
             EasyBip44WalletUtils.loadEasyBip44Wallet(password, walletFile)
         }.getOrElse {
@@ -102,7 +91,7 @@ object EasyWalletCenter {
         saveEasyWalletProfile(newProfile)
     }
 
-    fun importMnemonic(mnemonic: String, name: String, password: String): EasyWalletProfile {
+    fun recover(mnemonic: String, name: String, password: String): EasyWalletProfile {
         if (!MnemonicUtils.validateMnemonic(mnemonic)) {
             throw MnemonicInvalidException()
         }
@@ -118,7 +107,7 @@ object EasyWalletCenter {
         }
 
         val generateBip44Wallet =
-            EasyBip44WalletUtils.recoverBip44Wallet(mnemonic, password, File(walletBaseDirPath))
+            EasyBip44WalletUtils.recoverBip44Wallet(mnemonic, password, EasyWeb3JGlobalConfig.walletBaseDir)
 
         return EasyWalletProfile.create(name, generateBip44Wallet).also {
             saveEasyWalletProfile(it)
@@ -127,7 +116,7 @@ object EasyWalletCenter {
     }
 
     private fun saveEasyWalletProfile(profile: EasyWalletProfile) {
-        val expectWalletFile = File(walletBaseDirPath, profile.defaultEthAddress())
+        val expectWalletFile = File(EasyWeb3JGlobalConfig.walletBaseDir, profile.defaultEthAddress())
         expectWalletFile.parentFile?.mkdirs()
         expectWalletFile.writeText(gson.toJson(profile))
         nameToWalletMap[profile.name] = profile

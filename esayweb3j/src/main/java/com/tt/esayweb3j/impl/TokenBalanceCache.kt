@@ -8,13 +8,13 @@ import java.util.concurrent.ConcurrentHashMap
 object TokenBalanceCache {
 
     fun init() {
-        File(EasyWeb3JGlobalConfig.cacheDirPath).mkdirs()
+        EasyWeb3JGlobalConfig.cacheDirDir.mkdirs()
     }
 
     val tokenBalance = ConcurrentHashMap<String, EthTokenBalanceInfo>()
 
     private fun getCacheFile(ethAddr: String, subscribeToken: String) =
-        File(EasyWeb3JGlobalConfig.cacheDirPath, "$ethAddr$subscribeToken-balance")
+        File(EasyWeb3JGlobalConfig.cacheDirDir, "$ethAddr$subscribeToken-balance")
 
     fun getBalanceInfo(ethAddr: String, subscribeToken: String): EthTokenBalanceInfo? {
         return tokenBalance["$ethAddr$subscribeToken"] ?: kotlin.runCatching {

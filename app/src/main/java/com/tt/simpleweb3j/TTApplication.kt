@@ -11,16 +11,14 @@ class TTApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         EasyWeb3JGlobalConfig.config(
-            walletBaseDirPath = filesDir.absolutePath + if (BuildConfig.DEBUG) {
+            context = this,
+            env = if (BuildConfig.DEBUG) {
                 "/debug"
             } else {
                 "/release"
             },
-            cacheDirPath = cacheDir.absolutePath + if (BuildConfig.DEBUG) {
-                "/debug"
-            } else {
-                "/release"
-            },
+            walletBaseDirPath = filesDir.absolutePath,
+            cacheDirPath = cacheDir.absolutePath,
             web3JUrl = "Add your web3j url"
         )
         EasyWeb3JGlobalConfig.initLocal()

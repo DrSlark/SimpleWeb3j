@@ -1,6 +1,9 @@
 package com.tt.esayweb3j.impl
 
-import com.tt.esayweb3j.*
+import com.tt.esayweb3j.EasyWalletErrCode
+import com.tt.esayweb3j.EasyWalletException
+import com.tt.esayweb3j.EasyWeb3JGlobalConfig
+import com.tt.esayweb3j.MnemonicInvalidException
 import org.web3j.crypto.EasyBip44WalletUtils
 import org.web3j.crypto.MnemonicUtils
 import java.io.File
@@ -27,7 +30,11 @@ object EasyWalletCenter {
 
     fun loadAllWallet() {
         kotlin.runCatching {
-            EasyWeb3JGlobalConfig.walletBaseDir.takeIf { it.isDirectory }?.listFiles()?.forEach { file ->
+            EasyWeb3JGlobalConfig.walletBaseDir.takeIf { it.isDirectory }?.listFiles()?.filter {
+                it.name.startsWith(
+                    "0x"
+                )
+            }?.forEach { file ->
                 kotlin.runCatching {
                     val readText = file.readText()
                     val ap = gson.fromJson(readText, EasyWalletProfile::class.java)
@@ -88,6 +95,7 @@ object EasyWalletCenter {
         val walletProfile =
             nameToWalletMap[oldName]
                 ?: throw EasyWalletException(EasyWalletErrCode.WALLET_NOT_EXIST)
+        nameToWalletMap.remove(oldName)
         val newProfile = walletProfile.copy(name = newName)
         saveEasyWalletProfile(newProfile)
     }
@@ -101,10 +109,9 @@ object EasyWalletCenter {
             throw EasyWalletException(EasyWalletErrCode.WALLET_NAME_DUPLICATED)
         }
 
-        hasExistSameMnemonic(mnemonic)?.let {
-            throw WalletMnemonicException(it)
+        findExistSameMnemonic(mnemonic)?.let {
+            deleteWallet(it.name)
         }
-
 
         val generateBip44Wallet =
             EasyBip44WalletUtils.recoverBip44Wallet(
@@ -119,10 +126,11 @@ object EasyWalletCenter {
         }
     }
 
-    fun hasExistSameMnemonic(mnemonic: String): String? {
-        val newDefaultEthAddr = EasyBip44WalletUtils.mnemonicToDefaultEthAddr(mnemonic)
-        return nameToWalletMap.values.find { it.defaultEthAddress() == newDefaultEthAddr }?.name
+    fun findExistSameMnemonic(mnemonic: String) = nameToWalletMap.values.find {
+        it.defaultEthAddress() == EasyBip44WalletUtils.mnemonicToDefaultEthAddr(mnemonic)
     }
+
+    fun hasExistSameMnemonic(mnemonic: String) = findExistSameMnemonic(mnemonic)?.name
 
     private fun saveEasyWalletProfile(profile: EasyWalletProfile) {
         val expectWalletFile =

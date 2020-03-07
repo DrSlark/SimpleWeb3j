@@ -3,11 +3,11 @@ package com.tt.esayweb3j.impl
 import com.google.gson.annotations.Expose
 import com.tt.esayweb3j.EasyWalletErrCode
 import com.tt.esayweb3j.EasyWalletException
-import org.web3j.crypto.*
+import org.web3j.crypto.Credentials
+import org.web3j.crypto.EasyBip44Wallet
+import org.web3j.crypto.EasyBip44WalletUtils
+import org.web3j.crypto.Hash
 import org.web3j.utils.Numeric
-import java.lang.Exception
-import java.util.*
-import kotlin.collections.ArrayList
 
 data class Bip44DeriveProfile(
     val path: String,
@@ -102,11 +102,12 @@ data class EasyWalletProfile(
     }
 
     fun deleteCommunityBip44ByIndex(index: Int) {
-        ethBip44CommunityPaths.removeIf { it.getIndex() == index }
+        ethBip44CommunityPaths.removeAt(ethBip44CommunityPaths.indexOfFirst { it.getIndex() == index })
     }
 
     fun deleteCommunityBip44ByAddress(address: String) {
-        ethBip44CommunityPaths.removeIf { it.address == address }
+        ethBip44CommunityPaths.removeAt(ethBip44CommunityPaths.indexOfFirst { it.address == address })
     }
+
 
 }

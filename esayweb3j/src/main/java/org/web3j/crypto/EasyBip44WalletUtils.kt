@@ -110,16 +110,16 @@ object EasyBip44WalletUtils : WalletUtils() {
         return kotlin.runCatching {
             val result = ArrayList<Int>()
             val pathSeg = path.split('/')
-            for (i in 1 until path.length) {
+            for (i in 1 until pathSeg.size) {
                 result.add(
                     if (pathSeg[i].endsWith("'")) {
-                        pathSeg[i].substring(0, pathSeg.size - 1).toInt() or HARDENED_BIT
+                        pathSeg[i].substring(0, pathSeg[i].length - 1).toInt() or HARDENED_BIT
                     } else {
                         pathSeg[i].toInt()
                     }
                 )
             }
             result.toIntArray()
-        }.getOrElse { throw  Bip44PathInvalidException() }
+        }.getOrElse { throw  Bip44PathInvalidException(it) }
     }
 }

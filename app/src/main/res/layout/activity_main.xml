@@ -1,127 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/walletName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toTopOf="parent">
+        android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/walletName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Wallet name" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_marginTop="20dp"
+            app:endIconMode="clear_text">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@+id/walletName">
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Wallet name" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_marginTop="20dp"
+            app:endIconMode="clear_text">
 
-    <Button
-        android:id="@+id/create"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="20dp"
-        android:text="Create"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/password" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
-        android:id="@+id/unlock"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:text="Unlock/Unlock"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/create" />
-
-    <Button
-        android:id="@+id/delete"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:text="Delete"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/unlock" />
-
-    <Button
-        android:id="@+id/lock"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:text="lock"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/delete" />
-
-    <Button
-        android:id="@+id/gotoEthTran"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:text="GotoEthTran"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lock" />
-
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gotoEthTran">
-
-        <LinearLayout
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/mnemonic"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:endIconMode="clear_text">
 
-            <TextView
+            <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="存在的WalletName"
-                android:textSize="16sp" />
+                android:hint="mnemonic" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/currentStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="当前钱包状态 点击刷新"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/autoUnlock"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="autoUnlock" />
+
+        <Button
+            android:id="@+id/create"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Create" />
+
+        <Button
+            android:id="@+id/unlock"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Unlock" />
+
+        <Button
+            android:id="@+id/delete"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Delete" />
+
+        <Button
+            android:id="@+id/lock"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="lock" />
+
+        <Button
+            android:id="@+id/recover"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="recover" />
+
+        <Button
+            android:id="@+id/changeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="changeName(在WalletName处输入的旧名字 在mnemonic处输入新名字)" />
+
+        <Button
+            android:id="@+id/addAddress"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="addAddress" />
+
+        <Button
+            android:id="@+id/gotoEthTran"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="GotoEthTran" />
 
 
-            <TextView
-                android:id="@+id/walletNames"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textSize="16sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="生成的文件"
-                android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/walletDetails"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:textIsSelectable="true"
-                android:textSize="16sp" />
 
-        </LinearLayout>
+        <Button
+            android:id="@+id/clearLog"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="clearLog" />
 
-    </ScrollView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/opLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:textIsSelectable="true"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</ScrollView>

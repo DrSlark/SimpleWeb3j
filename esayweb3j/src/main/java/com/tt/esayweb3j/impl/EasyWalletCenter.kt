@@ -16,6 +16,7 @@ object EasyWalletCenter {
 
     fun init() {
         EasyWeb3JGlobalConfig.walletBaseDir.mkdirs()
+        loadAllWallet()
     }
 
     fun listAllWalletProfile(): List<EasyWalletProfile> {
@@ -100,14 +101,17 @@ object EasyWalletCenter {
             throw EasyWalletException(EasyWalletErrCode.WALLET_NAME_DUPLICATED)
         }
 
-        val newDefaultEthAddr = EasyBip44WalletUtils.mnemonicToDefaultEthAddr(mnemonic)
-
-        nameToWalletMap.values.find { it.defaultEthAddress() == newDefaultEthAddr }?.let {
-            throw WalletMnemonicException(it.name)
+        hasExistSameMnemonic(mnemonic)?.let {
+            throw WalletMnemonicException(it)
         }
 
+
         val generateBip44Wallet =
-            EasyBip44WalletUtils.recoverBip44Wallet(mnemonic, password, EasyWeb3JGlobalConfig.walletBaseDir)
+            EasyBip44WalletUtils.recoverBip44Wallet(
+                mnemonic,
+                password,
+                EasyWeb3JGlobalConfig.walletBaseDir
+            )
 
         return EasyWalletProfile.create(name, generateBip44Wallet).also {
             saveEasyWalletProfile(it)
@@ -115,8 +119,14 @@ object EasyWalletCenter {
         }
     }
 
+    fun hasExistSameMnemonic(mnemonic: String): String? {
+        val newDefaultEthAddr = EasyBip44WalletUtils.mnemonicToDefaultEthAddr(mnemonic)
+        return nameToWalletMap.values.find { it.defaultEthAddress() == newDefaultEthAddr }?.name
+    }
+
     private fun saveEasyWalletProfile(profile: EasyWalletProfile) {
-        val expectWalletFile = File(EasyWeb3JGlobalConfig.walletBaseDir, profile.defaultEthAddress())
+        val expectWalletFile =
+            File(EasyWeb3JGlobalConfig.walletBaseDir, profile.defaultEthAddress())
         expectWalletFile.parentFile?.mkdirs()
         expectWalletFile.writeText(gson.toJson(profile))
         nameToWalletMap[profile.name] = profile

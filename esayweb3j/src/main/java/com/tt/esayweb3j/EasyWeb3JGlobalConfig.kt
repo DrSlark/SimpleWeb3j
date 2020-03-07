@@ -32,6 +32,14 @@ object EasyWeb3JGlobalConfig {
     lateinit var kvStore: SharedPreferences
         private set
 
+    /**
+     *
+     * @param context
+     * @param env 传一个当年区分环境的字符串  比如 production stage test dev 这里数据存储需要用这个区分不同环境
+     * @param walletBaseDirPath
+     * @param cacheDirPath
+     * @param web3JUrl
+     */
     fun config(
         context: Context,
         env: String,

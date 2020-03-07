@@ -22,5 +22,5 @@ class WalletMnemonicException(
 ) : EasyWalletException(EasyWalletErrCode.WALLET_MNEMONIC_DUPLICATED, alreadyExistName, cause)
 
 
-class Bip44PathInvalidException : Exception()
-class MnemonicInvalidException : Exception()
+class Bip44PathInvalidException(cause: Throwable?=null) : Exception(cause)
+class MnemonicInvalidException(cause: Throwable?=null) : Exception(cause)

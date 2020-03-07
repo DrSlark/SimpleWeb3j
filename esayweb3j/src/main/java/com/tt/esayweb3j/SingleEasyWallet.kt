@@ -83,6 +83,10 @@ object SingleEasyWallet {
         }
     }
 
+    fun hasExistSameMnemonic(mnemonic: String): String? {
+        return EasyWalletCenter.hasExistSameMnemonic(mnemonic)
+    }
+
     // 如果传空 就删除当前钱包，也可以指定删除其它钱包
     fun deleteWallet(name: String? = null) {
         val deleteName = name ?: unlockedWallet?.name ?: return

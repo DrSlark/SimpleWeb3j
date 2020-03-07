@@ -13,9 +13,9 @@ class TTApplication : Application() {
         EasyWeb3JGlobalConfig.config(
             context = this,
             env = if (BuildConfig.DEBUG) {
-                "/debug"
+                "debug"
             } else {
-                "/release"
+                "release"
             },
             walletBaseDirPath = filesDir.absolutePath,
             cacheDirPath = cacheDir.absolutePath,
